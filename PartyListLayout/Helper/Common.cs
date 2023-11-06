@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using Dalamud.Hooking;
+using Dalamud.Plugin.Services;
+using ECommons.DalamudServices;
 using FFXIVClientStructs.Attributes;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
@@ -28,8 +30,8 @@ namespace PartyListLayout.Helper {
         }
 
         public static HookWrapper<T> Hook<T>(string signature, T detour, bool enable = true, int addressOffset = 0) where T : Delegate {
-            var addr = Plugin.SigScanner.ScanText(signature);
-            var h = Dalamud.Hooking.Hook<T>.FromAddress(addr + addressOffset, detour);
+            var addr = Svc.SigScanner.ScanText(signature);
+            var h = Svc.Hook.HookFromAddress<T>(addr + addressOffset, detour);
             var wh = new HookWrapper<T>(h);
             if (enable) wh.Enable();
             HookList.Add(wh);

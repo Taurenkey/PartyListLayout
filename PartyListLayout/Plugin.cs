@@ -10,19 +10,13 @@ using Dalamud.Game.Gui;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using Lumina.Excel.GeneratedSheets;
+using Dalamud.Plugin.Services;
+using ECommons;
+using ECommons.DalamudServices;
 
 namespace PartyListLayout {
-    [SuppressMessage("ReSharper", "AutoPropertyCanBeMadeGetOnly.Local")]
     public class Plugin : IDalamudPlugin {
         public string Name => "Party List Layout";
-
-        [PluginService] public static DalamudPluginInterface PluginInterface { get; private set; } = null!;
-        [PluginService] public static CommandManager CommandManager { get; private set; } = null!;
-        [PluginService] public static Framework Framework { get; private set; } = null!;
-        [PluginService] public static GameGui GameGui { get; private set; } = null!;
-        [PluginService] public static SigScanner SigScanner { get; private set; } = null!;
-        [PluginService] public static KeyState KeyState { get; private set; } = null!;
-
 
         public PartyListLayout PartyListLayout;
 
@@ -33,6 +27,12 @@ namespace PartyListLayout {
 
         private bool isDisposed;
 
+        public Plugin(DalamudPluginInterface pluginInterface)
+        {
+            ECommonsMain.Init(pluginInterface, this, Module.All);
+            Instance = this;
+            Init();
+        }
 
         public void Dispose() {
             isDisposed = true;
@@ -42,24 +42,24 @@ namespace PartyListLayout {
                 hook.Dispose();
             }
 
-            CommandManager.RemoveHandler("/playout");
+            Svc.Commands.RemoveHandler("/playout");
             ConfigWindow?.Hide();
         }
 
         public void Init() {
 
-            Config = (PluginConfig) PluginInterface.GetPluginConfig() ?? new PluginConfig();
+            Config = (PluginConfig) Svc.PluginInterface.GetPluginConfig() ?? new PluginConfig();
             ConfigWindow = new ConfigWindow(this);
             ConfigWindow.SetupLayoutFlags();
 #if DEBUG
             SimpleLog.SetupBuildPath();
 #endif
-            PluginInterface.UiBuilder.OpenConfigUi += OnConfig;
+            Svc.PluginInterface.UiBuilder.OpenConfigUi += OnConfig;
 
             PartyListLayout = new PartyListLayout(this);
             PartyListLayout.Enable();
 
-            CommandManager.AddHandler("/playout", new CommandInfo(OnConfigCommandHandler) {
+            Svc.Commands.AddHandler("/playout", new CommandInfo(OnConfigCommandHandler) {
                 ShowInHelp = true,
                 HelpMessage = $"Open or close the {Name} config window."
             });
@@ -67,16 +67,6 @@ namespace PartyListLayout {
 #if DEBUG
             ConfigWindow.Show();
 #endif
-        }
-
-        public Plugin() {
-            PluginInterface.Create<PartyListLayout>();
-            Instance = this;
-            Task.Run(FFXIVClientStructs.Resolver.Initialize)
-                .ContinueWith((_) => {
-                    if (isDisposed) return;
-                    Init();
-            });
         }
 
         public void OnConfigCommandHandler(string command, string args) {

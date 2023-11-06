@@ -7,6 +7,7 @@ using System.Linq;
 using System.Numerics;
 using System.Reflection;
 using Dalamud.Utility;
+using ECommons.DalamudServices;
 using ImGuiNET;
 using Newtonsoft.Json;
 using PartyListLayout.Converter;
@@ -46,14 +47,14 @@ namespace PartyListLayout.Config {
         public void Hide() {
             if (!isVisible) return;
             isVisible = false;
-            Plugin.PluginInterface.UiBuilder.Draw -= DrawWindow;
+            Svc.PluginInterface.UiBuilder.Draw -= DrawWindow;
             AutoSavePreset();
         }
 
         public void Show() {
             if (isVisible) return;
             isVisible = true;
-            Plugin.PluginInterface.UiBuilder.Draw += DrawWindow;
+            Svc.PluginInterface.UiBuilder.Draw += DrawWindow;
         }
 
         public void Toggle() {
@@ -335,7 +336,7 @@ namespace PartyListLayout.Config {
                     }
                     case Tabs.Presets: {
 
-                        var dirStr = Plugin.PluginInterface.GetPluginConfigDirectory();
+                        var dirStr = Svc.PluginInterface.GetPluginConfigDirectory();
                         var dirPath = new DirectoryInfo(Path.Combine(dirStr, "Presets"));
 
                         if (!dirPath.Exists) {
@@ -460,7 +461,7 @@ namespace PartyListLayout.Config {
                 try {
                     if (c) {
                         plugin.PartyListLayout.ConfigUpdated();
-                        Plugin.PluginInterface.SavePluginConfig(Config);
+                        Svc.PluginInterface.SavePluginConfig(Config);
                     }
                 } catch (Exception ex) {
                     SimpleLog.Error(ex);
@@ -508,7 +509,7 @@ namespace PartyListLayout.Config {
                 ImGui.TextWrapped($"{f.LastWriteTime.ToShortDateString()}  {f.LastWriteTime.ToShortTimeString()}");
                 ImGui.TableNextColumn();
 
-                if (Plugin.KeyState[0x11]) {
+                if (Svc.KeyState[0x11]) {
                     if (ImGui.SmallButton($"Delete Preset##{uid++}")) {
                         f.Delete();
                     }
@@ -538,7 +539,7 @@ namespace PartyListLayout.Config {
             if (plugin.Config.AutoSave) {
                 var json = GetConfigExport(true);
 
-                var dir = Path.Combine(Plugin.PluginInterface.GetPluginConfigDirectory(), "Presets", "__AutoSave__");
+                var dir = Path.Combine(Svc.PluginInterface.GetPluginConfigDirectory(), "Presets", "__AutoSave__");
                 var file = Path.Combine(dir, $"{DateTime.Now.ToFileTimeUtc()}{PresetFileSuffix}");
                 if (File.Exists(file)) return;
                 var dirInfo = new DirectoryInfo(dir);

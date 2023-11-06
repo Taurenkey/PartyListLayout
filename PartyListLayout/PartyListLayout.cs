@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
 using System.Text;
+using Dalamud.Plugin.Services;
+using ECommons.DalamudServices;
 using FFXIVClientStructs.FFXIV.Client.Graphics;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -116,7 +118,7 @@ namespace PartyListLayout {
                 SimpleLog.Error(ex);
             }
 
-            Plugin.Framework.Update += FrameworkUpdate;
+            Svc.Framework.Update += FrameworkUpdate;
             Enabled = true;
         }
         
@@ -132,10 +134,10 @@ namespace PartyListLayout {
 
         public void Disable() {
             if (!Enabled) return;
-            Plugin.Framework.Update -= FrameworkUpdate;
+            Svc.Framework.Update -= FrameworkUpdate;
             if (plugin.Config.PreviewMode && plugin.ConfigWindow.IsOpen) {
                 plugin.Config.PreviewMode = false;
-                FrameworkUpdate(Plugin.Framework);
+                FrameworkUpdate(Svc.Framework);
             }
             partyListOnUpdateHook?.Disable();
             try {
@@ -144,14 +146,14 @@ namespace PartyListLayout {
                 SimpleLog.Error(ex);
             }
 
-            FrameworkUpdate(Plugin.Framework);
+            FrameworkUpdate(Svc.Framework);
 
             Enabled = false;
         }
 
         private bool isPreviewing;
 
-        private void FrameworkUpdate(Dalamud.Game.Framework framework) {
+        private void FrameworkUpdate(IFramework framework) {
             if (!(plugin.Config.PreviewMode && plugin.ConfigWindow.IsOpen)) {
                 if (isPreviewing) {
                     SimpleLog.Log("Preview Mode Disabled");
@@ -373,9 +375,9 @@ namespace PartyListLayout {
             nodes.PartyBackground->AtkResNode.SetHeight((ushort)backgroundHeight);
 
             var add = reset ? new Vector3(0) : CurrentLayout.Background.BackgroundColor;
-            nodes.PartyBackground->AtkResNode.AddRed = (ushort)(add.X * 255);
-            nodes.PartyBackground->AtkResNode.AddGreen = (ushort)(add.Y * 255);
-            nodes.PartyBackground->AtkResNode.AddBlue = (ushort)(add.Z * 255);
+            nodes.PartyBackground->AtkResNode.AddRed = (short)(add.X * 255);
+            nodes.PartyBackground->AtkResNode.AddGreen = (short)(add.Y * 255);
+            nodes.PartyBackground->AtkResNode.AddBlue = (short)(add.Z * 255);
             nodes.PartyBackground->AtkResNode.Color.A = (byte)(255 * (reset ? 1f : CurrentLayout.Background.BackgroundOpacity));
 
             nodes.PartyBackground->AtkResNode.ToggleVisibility(reset || !CurrentLayout.Background.Hide);
@@ -405,9 +407,9 @@ namespace PartyListLayout {
                     resNode->MultiplyBlue = (byte)(multiply.Z * 255);
 
                     var add = reset ? defAddColor : eCfg.AddColor;
-                    resNode->AddRed = (ushort)(add.X * 1000);
-                    resNode->AddGreen = (ushort)(add.Y * 1000);
-                    resNode->AddBlue = (ushort)(add.Z * 1000);
+                    resNode->AddRed = (short)(add.X * 1000);
+                    resNode->AddGreen = (short)(add.Y * 1000);
+                    resNode->AddBlue = (short)(add.Z * 1000);
                 }
 
                 if (eCfg is TextElementConfig tec && resNode->Type == NodeType.Text) {
